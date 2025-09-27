@@ -116,6 +116,11 @@ class PromptEmbeddings:
 
 if __name__ == "__main__":
     (conn, cur) = connect_to_pg()
+    # Temp setup
+    cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+    cur.execute("CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;")
+    conn.commit()
+    # END - Temp setup
     prompt_searcher = PromptEmbeddings(conn, None)
 
     question = "What would be a good prompt to create a smart contract?"
