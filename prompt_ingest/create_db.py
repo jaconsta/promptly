@@ -49,6 +49,15 @@ def create_db_and_tables(conn: connection):
     conn.commit()
 
 
+def create_embeddings_index():
+    """
+    Create an index for table for faster retrieval
+    """
+    (conn, cur) = connect_to_pg()
+    cur.execute("CREATE INDEX embedding_idx ON embeddings USING diskann (embedding);")
+    conn.commit()
+
+
 if __name__ == "__main__":
     print("Creating tables")
     (conn, cur) = connect_to_pg()
