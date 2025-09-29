@@ -1,3 +1,8 @@
+import json
+import time
+import os
+import re
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from psycopg2.extensions import connection
@@ -6,9 +11,6 @@ from fastapi import Form, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Template
-import json
-import time
-import os
 from embeddings_retrieval import PromptEmbeddings, connect_to_pg
 import mistune
 
@@ -82,6 +84,15 @@ class CookieManager:
             max_age=3600,
             path="/",
         )
+
+
+def is_sql_injection(text):
+    # Very basic SQL injection detection (expand as needed)
+    pattern = re.compile(
+        r"('|--|;|/\*|\*/|xp_|exec|union|select|insert|update|delete|drop|alter|create|shutdown| or | and )",
+        re.IGNORECASE,
+    )
+    return bool(pattern.search(text))
 
 
 def render_form(posts_left=INITIAL_POST_COUNT, error_msg=None):
@@ -179,11 +190,19 @@ async def ask(
 
         cookie_manager.update_cookie(response, {"count": 0, "reset": reset_time})
         return response
+    if is_sql_injection(question):
+        response = HTMLResponse(
+            render_form(
+                posts_left=posts_left,
+                error_msg="Input contains forbidden SQL keywords or patterns.",
+            )
+        )
+        # response.set_cookie('post_limit', json.dumps({'count': posts_left, 'reset': reset_time}), max_age=3600, path='/')
+        return response
 
     message = PromptEmbeddings(db, None).process_input_with_retrieval(question)
 
     posts_left -= 1
-    # message =  f"You asked: {question}"
     response = HTMLResponse(render_result(question, message, posts_left=posts_left))
     cookie_manager.update_cookie(response, {"count": posts_left, "reset": reset_time})
     return response

@@ -12,8 +12,10 @@ body {
   padding: 2rem 2.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-  min-width: 400px;
+  box-sizing: border-box;
+  min-width: 0px;
   max-width: 600px;
+  width: 100%;
 }
 .input-group {
   display: flex;
@@ -194,5 +196,15 @@ button:active {
   }
   to {
     transform: rotate(359deg);
+  }
+}
+
+@media (max-width: 700px) {
+  .container {
+    padding: 1rem 0.5rem;
+    max-width: 98vw;
+  }
+  .img-preview {
+    max-width: 95vw;
   }
 }
